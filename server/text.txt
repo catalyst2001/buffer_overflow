@@ -1,0 +1,26 @@
+auto exception_handler = [](unsigned int code, struct _EXCEPTION_POINTERS *ep) {
+  printf("-------------------------------------\n");
+  if (code == EXCEPTION_ACCESS_VIOLATION) {
+    printf("Access violation occurred at address 0x%p\n", ep->ExceptionRecord->ExceptionAddress);
+
+    auto get_access_violation_type_string = [](PEXCEPTION_RECORD er) -> const char * {
+      switch (er->ExceptionInformation[0])
+      {
+      case 0:
+        return "read";
+      case 1:
+        return "write";
+      default:
+        return "execute";
+      }
+    };
+
+    const char *p_access_violation_type = get_access_violation_type_string(ep->ExceptionRecord);
+    printf("Attempted to %s at address 0x%p\n", p_access_violation_type, reinterpret_cast<void*>(ep->ExceptionRecord->ExceptionInformation[1]));
+  }
+  else {
+    printf("Unhandled exception occurred: 0x%X\n", code);
+  }
+  printf("-------------------------------------\n");
+  return EXCEPTION_EXECUTE_HANDLER;
+};
